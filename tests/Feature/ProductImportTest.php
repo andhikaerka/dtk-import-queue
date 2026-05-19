@@ -74,4 +74,27 @@ class ProductImportTest extends TestCase
                      'success' => 50,
                  ]);
     }
+
+    public function test_user_cannot_upload_invalid_file_type()
+    {
+        $user = User::factory()->create();
+        $file = UploadedFile::fake()->create('image.png', 100, 'image/png');
+
+        $response = $this->actingAs($user, 'sanctum')->postJson('/api/import/products', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['file']);
+    }
+
+    public function test_user_cannot_upload_missing_file()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user, 'sanctum')->postJson('/api/import/products', []);
+
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['file']);
+    }
 }

@@ -2,18 +2,18 @@
 
 namespace App\Jobs;
 
+use App\Enums\ImportJobStatus;
 use App\Models\ImportJob;
 use App\Models\Product;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class ProcessProductImport implements ShouldQueue
 {
     use Queueable;
 
-    protected $importJob;
+    public $importJob;
 
     /**
      * 1. Menerima data model ImportJob dari Controller
@@ -29,14 +29,14 @@ class ProcessProductImport implements ShouldQueue
     public function handle(): void
     {
         // Ubah status di database menjadi 'in_progress'
-        $this->importJob->update(['status' => 'in_progress']);
+        $this->importJob->update(['status' => ImportJobStatus::IN_PROGRESS->value]);
         Log::info("INFO: Memulai pemrosesan Impor Produk untuk Job ID: {$this->importJob->id}");
 
-        // Dapatkan path lengkap file CSV di private storage
-        $filePath = storage_path('app/private/' . $this->importJob->filename);
+        // Dapatkan path lengkap file CSV dari storage
+        $filePath = \Illuminate\Support\Facades\Storage::path($this->importJob->filename);
 
         if (!file_exists($filePath)) {
-            $this->importJob->update(['status' => 'failed']);
+            $this->importJob->update(['status' => ImportJobStatus::FAILED->value]);
             Log::error("ERROR: File tidak ditemukan di path: {$filePath}");
             return;
         }
@@ -80,7 +80,6 @@ class ProcessProductImport implements ShouldQueue
                 }
 
                 // Chunking/Reporting: Update progress ke DB setiap kelipatan 500 baris 
-                // agar Postman status tidak stuck melainkan terlihat naik terus angkanya
                 if ($totalCount % 500 === 0) {
                     $this->importJob->update([
                         'total' => $totalCount,
@@ -94,7 +93,7 @@ class ProcessProductImport implements ShouldQueue
 
             // Selesai sepenuhnya, ubah status menjadi 'completed'
             $this->importJob->update([
-                'status' => 'completed',
+                'status' => ImportJobStatus::COMPLETED->value,
                 'total' => $totalCount,
                 'success' => $successCount,
                 'failed' => $failedCount
@@ -102,7 +101,7 @@ class ProcessProductImport implements ShouldQueue
 
             Log::info("INFO: Job ID {$this->importJob->id} Selesai diproses. Total: {$totalCount}, Sukses: {$successCount}, Gagal: {$failedCount}");
             
-            // Hapus file CSV fisik setelah selesai diproses agar storage Docker tidak penuh
+            // Hapus file CSV fisik setelah selesai diproses
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
