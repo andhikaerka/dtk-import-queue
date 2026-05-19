@@ -67,6 +67,7 @@ docker compose exec app composer install
 
 # Generate kunci enkripsi aplikasi
 docker compose exec app php artisan key:generate
+```
 
 ### 3. Migrasi Database & Otomatisasi Seeding
 Eksekusi migrasi untuk membentuk skema tabel beserta seeder data:
