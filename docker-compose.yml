@@ -18,6 +18,7 @@ services:
       - "8000:8080"
     volumes:
       - ./:/app
+      - .docker/php/php.ini:/usr/local/etc/php/conf.d/99-custom.ini
     environment:
       - SERVER_NAME=:8080
       - DB_HOST=postgres
