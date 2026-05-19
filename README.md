@@ -56,13 +56,17 @@ docker compose up -d --build
 ```
 *Perintah ini akan menyalakan 4 container utama: `app`, `queue`, `postgres`, dan `redis`.*
 
-### 2. Inisialisasi Environment Aplikasi
-Jalankan rangkaian perintah berikut di dalam container untuk menyiapkan kunci enkripsi:
-
+### 2. Inisialisasi Environment & Install Dependensi
+Salin file environment, unduh library vendor via Composer di dalam container, dan generate kunci enkripsi aplikasi:
 ```bash
+# Copy file environment
 cp .env.example .env
+
+# MANDATORY: Install semua library Laravel di dalam container (Wajib setelah git clone)
+docker compose exec app composer install
+
+# Generate kunci enkripsi aplikasi
 docker compose exec app php artisan key:generate
-```
 
 ### 3. Migrasi Database & Otomatisasi Seeding
 Eksekusi migrasi untuk membentuk skema tabel beserta seeder data:
