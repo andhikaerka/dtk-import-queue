@@ -26,8 +26,10 @@ services:
       - QUEUE_CONNECTION=redis
       - BROADCAST_CONNECTION=reverb
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - laravel-net
     user: "${UID:-1000}:${GID:-1000}"
@@ -57,8 +59,10 @@ services:
       - REDIS_HOST=redis
       - QUEUE_CONNECTION=redis
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - laravel-net
     # Note: User di-handle oleh config supervisor, container start as root
@@ -86,6 +90,11 @@ services:
       - .docker/postgres_data:/var/lib/postgresql/data
     networks:
       - laravel-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
     # --- LIMIT RAM POSTGRES ---
     deploy:
       resources:
@@ -108,6 +117,12 @@ services:
       - ./.docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
     networks:
       - laravel-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
     # --- LIMIT RAM REDIS ---
     deploy:
       resources:
