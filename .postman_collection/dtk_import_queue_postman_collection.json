@@ -1,0 +1,223 @@
+{
+"info": {
+"_postman_id": "9a38f83b-f783-4a12-87c2-19e072b22bb8",
+"name": "DTK Import Queue API",
+"description": "Postman Collection untuk testing API Import Data Produk (Asynchronous Queue).",
+"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+},
+"item": [
+{
+"name": "Auth",
+"item": [
+{
+"name": "1. Register",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Accept",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "formdata",
+"formdata": [
+{
+"key": "name",
+"value": "Admin QA",
+"type": "text"
+},
+{
+"key": "email",
+"value": "qa@internal.com",
+"type": "text"
+},
+{
+"key": "password",
+"value": "password123",
+"type": "text"
+},
+{
+"key": "password_confirmation",
+"value": "password123",
+"type": "text"
+}
+]
+},
+"url": {
+"raw": "{{base_url}}/api/register",
+"host": [
+"{{base_url}}"
+],
+"path": [
+"api",
+"register"
+]
+}
+}
+},
+{
+"name": "2. Login",
+"request": {
+"method": "POST",
+"header": [
+{
+"key": "Accept",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "formdata",
+"formdata": [
+{
+"key": "email",
+"value": "admin@internal.com",
+"type": "text"
+},
+{
+"key": "password",
+"value": "password123",
+"type": "text"
+}
+]
+},
+"url": {
+"raw": "{{base_url}}/api/login",
+"host": [
+"{{base_url}}"
+],
+"path": [
+"api",
+"login"
+]
+}
+}
+},
+{
+"name": "5. Logout",
+"request": {
+"auth": {
+"type": "bearer",
+"bearer": [
+{
+"key": "token",
+"value": "{{token}}",
+"type": "string"
+}
+]
+},
+"method": "POST",
+"header": [
+{
+"key": "Accept",
+"value": "application/json"
+}
+],
+"url": {
+"raw": "{{base_url}}/api/logout",
+"host": [
+"{{base_url}}"
+],
+"path": [
+"api",
+"logout"
+]
+}
+}
+}
+]
+},
+{
+"name": "Import Jobs",
+"item": [
+{
+"name": "3. Upload CSV (Async)",
+"request": {
+"auth": {
+"type": "bearer",
+"bearer": [
+{
+"key": "token",
+"value": "{{token}}",
+"type": "string"
+}
+]
+},
+"method": "POST",
+"header": [
+{
+"key": "Accept",
+"value": "application/json"
+}
+],
+"body": {
+"mode": "formdata",
+"formdata": [
+{
+"key": "file",
+"type": "file",
+"src": []
+}
+]
+},
+"url": {
+"raw": "{{base_url}}/api/import/products",
+"host": [
+"{{base_url}}"
+],
+"path": [
+"api",
+"import",
+"products"
+]
+}
+}
+},
+{
+"name": "4. Check Job Status",
+"request": {
+"auth": {
+"type": "bearer",
+"bearer": [
+{
+"key": "token",
+"value": "{{token}}",
+"type": "string"
+}
+]
+},
+"method": "GET",
+"header": [
+{
+"key": "Accept",
+"value": "application/json"
+}
+],
+"url": {
+"raw": "{{base_url}}/api/import/status/1",
+"host": [
+"{{base_url}}"
+],
+"path": [
+"api",
+"import",
+"status",
+"1"
+]
+}
+}
+}
+]
+}
+],
+"variable": [
+{
+"key": "base_url",
+"value": "http://localhost:8000"
+},
+{
+"key": "token",
+"value": "ISI_TOKEN_DARI_LOGIN_DISINI"
+}
+]
+}

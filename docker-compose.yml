@@ -1,0 +1,118 @@
+x-build-config: &build-config
+  context: .
+  dockerfile: .docker/Dockerfile
+  target: dev
+  # 1. Tambahkan args di sini agar UID/GID host terbaca
+  args:
+    UID: ${UID:-1000}
+    GID: ${GID:-1000}
+
+services:
+  # 1. APP (FrankenPHP Web Server) - Native
+  app:
+    build: *build-config
+    image: import-queue-api_app
+    container_name: import-queue-api_app
+    restart: unless-stopped
+    ports:
+      - "8000:8080"
+    volumes:
+      - ./:/app
+    environment:
+      - SERVER_NAME=:8080
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+      - BROADCAST_CONNECTION=reverb
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - laravel-net
+    user: "${UID:-1000}:${GID:-1000}"
+    # --- LIMIT RAM APP ---
+    deploy:
+      resources:
+        limits:
+          memory: 768M  # Batas atas (Jika lewat, container direstart)
+        reservations:
+          memory: 256M  # Jaminan minimum
+
+  # 2. QUEUE (Worker) - VIA SUPERVISOR
+  queue:
+    build: *build-config
+    image: import-queue-api_queue
+    container_name: import-queue-api_queue
+    restart: unless-stopped
+    volumes:
+      - ./:/app
+      # Mount config supervisor khusus worker
+      - .docker/supervisor/worker.conf:/etc/supervisor/conf.d/worker.conf
+    # Entrypoint: Jalankan Supervisor
+    command: /usr/bin/supervisord -c /etc/supervisor/conf.d/worker.conf
+    environment:
+      - APP_ENV=local
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - laravel-net
+    # Note: User di-handle oleh config supervisor, container start as root
+    user: root
+    # --- LIMIT RAM QUEUE (Penting karena banyak worker) ---
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # 6. PostgreSQL (PostgreSQL Stable Alpine)
+  postgres:
+    image: postgres:17-alpine
+    container_name: import-queue-api_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-laravel}
+      POSTGRES_USER: ${DB_USERNAME:-laravel}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    volumes:
+      - .docker/postgres_data:/var/lib/postgresql/data
+    networks:
+      - laravel-net
+    # --- LIMIT RAM POSTGRES ---
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 768M
+
+  # 7. Redis (Cache & Queue)
+  redis:
+    image: redis:8.4.0-alpine
+    container_name: import-queue-api_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      # Menggunakan Bind Mount (Folder fisik)
+      - ./.docker/redis-data:/data
+      # Config pakai Bind Mount (Mudah Diedit)
+      - ./.docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - laravel-net
+    # --- LIMIT RAM REDIS ---
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+networks:
+  laravel-net:
+    driver: bridge
