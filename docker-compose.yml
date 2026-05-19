@@ -52,7 +52,7 @@ services:
       # Mount config supervisor khusus worker
       - .docker/supervisor/worker.conf:/etc/supervisor/conf.d/worker.conf
     # Entrypoint: Jalankan Supervisor
-    command: /usr/bin/supervisord -c /etc/supervisor/conf.d/worker.conf
+    command: sh -c "until [ -f /app/vendor/autoload.php ]; do echo 'Menunggu composer install selesai di container app...'; sleep 2; done; exec /usr/bin/supervisord -c /etc/supervisor/conf.d/worker.conf"
     environment:
       - APP_ENV=local
       - DB_HOST=postgres
