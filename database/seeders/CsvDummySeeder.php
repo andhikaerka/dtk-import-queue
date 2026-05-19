@@ -32,7 +32,7 @@ class CsvDummySeeder extends Seeder
         // Gunakan array penampung SKU untuk memastikan tidak ada SKU yang duplikat (Unique)
         $generatedSkus = [];
         
-        $totalRows = 100000; // Target 100.000 data
+        $totalRows = 80000; // Target 80.000 data
 
         $this->command->info("Sedang men-generate {$totalRows} data CSV menggunakan Faker...");
 
