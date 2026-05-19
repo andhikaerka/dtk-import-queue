@@ -17,7 +17,7 @@ class CsvDummySeeder extends Seeder
         $faker = Faker::create('id_ID');
 
         // Tentukan lokasi file CSV
-        $filePath = storage_path('app/private/products_real_sample.csv');
+        $filePath = storage_path('app/private/products_sample.csv');
 
         // Pastikan direktorinya ada
         if (!file_exists(dirname($filePath))) {

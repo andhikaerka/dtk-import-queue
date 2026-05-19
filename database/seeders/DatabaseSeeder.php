@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,8 +14,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Create one user (Admin) and generate a full CSV file.
         $this->call([
             UserSeeder::class,
+            CsvDummySeeder::class,
         ]);
     }
 }
